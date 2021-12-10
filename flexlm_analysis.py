@@ -34,7 +34,7 @@ class Options:
     files = []           # file list that we will read looking for entries
     out = 'None'         # Character string to choose which output we want:
                          # 'stat' or 'gnuplot'
-    image = 'image.png'  # Image name to be included in the gnuplot script
+    report = 'Licenses'  # Report name to be included in the gnuplot script
     description = {}
     options = None
 
@@ -44,7 +44,7 @@ class Options:
         """
         self.files = []
         self.out = 'None'
-        self.image = 'image.png'
+        self.report = 'Licenses'
         self.description = {}
         self.options = None
 
@@ -63,8 +63,8 @@ class Options:
 
         parser = argparse.ArgumentParser(description='Script to analyse flexlm log files.', version=str_version)
 
-        parser.add_argument('-i', '--image', action='store', dest='image', help='Tells the image name the gnuplot script may generate', default='image.png')
-        parser.add_argument('-g', '--gnuplot', action='store_true', dest='gnuplot', help='Outputs a gnuplot script that can be executed later to generate an image about the usage', default=False)
+        parser.add_argument('-r', '--report', action='store', dest='report', help='Tells the report name the gnuplot script may generate', default='Licenses')
+        parser.add_argument('-g', '--gnuplot', action='store_true', dest='gnuplot', help='Outputs a gnuplot script that can be executed later to generate an report about the usage', default=False)
         parser.add_argument('-s', '--stats', action='store_true', dest='stats', help='Outputs some stats about the use of the modules as stated in the log file', default=False)
         parser.add_argument('files', metavar='Files', type=str, nargs='+', help='Log files to be parsed')
 
@@ -76,7 +76,7 @@ class Options:
         if self.options.stats:
             self.out = 'stat'
 
-        self.image = self.options.image
+        self.report = self.options.report
         self.files = self.options.files
 
     # End of get_command_line_arguments() function
@@ -306,7 +306,7 @@ def update_use_value_upon_state(state, use):
 
 
 def do_gnuplot_stats(result_list):
-    """Here we do some gnuplot style stats in order to draw an image of the
+    """Here we do some gnuplot style stats in order to create a report of the
     evolution of the use of the modules.
 
     event_list contains the date, time and number of used licenses in reverse
@@ -340,29 +340,32 @@ def do_gnuplot_stats(result_list):
 # End of do_some_stats function
 
 
-def print_gnuplot(image_name, nb_days, stats, module_list):
+def print_gnuplot(report_name, nb_days, stats, module_list):
     """Writing the data files and the gnuplot script.
     """
 
     # Generating the gnuplot script
     gnuplot_file = open('gnuplot.script', 'w')
 
+    gnuplot_file.write('# Gnuplot settings.\n')
     gnuplot_file.write('set key right\n')
     gnuplot_file.write('set grid\n')
-    gnuplot_file.write('set title "FlexLm"\n')
+    gnuplot_file.write('set title "FlexLm - %s"\n' % report_name)
     gnuplot_file.write('set xdata time\n')
     gnuplot_file.write('set timefmt "%Y/%m/%d %H:%M:%S"\n')
     gnuplot_file.write('set format x "%Y/%m/%d %H:%M:%S"\n')
-    gnuplot_file.write('set xlabel "Date"\n')
-    gnuplot_file.write('set ylabel "Nombre d\'executions"\n')
-    gnuplot_file.write('set output "%s"\n' % image_name)
+    gnuplot_file.write('set xlabel "Date, Time"\n')
+    gnuplot_file.write('set xtics rotate\n')
+    gnuplot_file.write('set ylabel "Number of licenses"\n')
+    gnuplot_file.write('set output "%s.pdf"\n' % report_name)
     gnuplot_file.write('set style line 1 lw 1\n')
-    gnuplot_file.write('set terminal png size %d,1024\n' % (24*nb_days))
-    gnuplot_file.write('plot ')
+    gnuplot_file.write('set terminal pdf size 29.7 cm, 21.0 cm  # PDF output in A4 format\n')
 
     first_line = True
 
-    # Generating data files. Their names are based upon the module name being analysed
+    # Generating data files. Their names are based upon the module name being analysed.
+    gnuplot_file.write('\n# All license features on one page.\n')
+    gnuplot_file.write('plot ')
     for m in module_list:
         dat_filename = '%s.dat' % m
         dat_file = open(dat_filename, 'w')
@@ -382,16 +385,22 @@ def print_gnuplot(image_name, nb_days, stats, module_list):
 
         dat_file.close()
 
+    # Generate one page per license feature in the output PDF.
+    gnuplot_file.write('\n# One page per license feature.')
+    for m in module_list:
+        dat_filename = '%s.dat' % m
+        gnuplot_file.write('\nplot "%s" using 1:3 title "%s" with lines' % (dat_filename, m))
+
 # End of print_gnuplot() function
 
 
-def output_gnuplot(image_name, nb_days, result_list):
+def output_gnuplot(report_name, nb_days, result_list):
     """Does some stats and outputs them into some data files and a gnuplot script
     that one might run later.
     """
 
     (stats, module_list) = do_gnuplot_stats(result_list)
-    print_gnuplot(image_name, nb_days, stats, module_list)
+    print_gnuplot(report_name, nb_days, stats, module_list)
 
 # End of output_gnuplot() function
 
@@ -410,9 +419,9 @@ def main():
         if my_opts.out == 'stat':
             output_stats(nb_days, result_list)
 
-        # We do not want to generate an image if the number of day usage is less than one !
+        # We do not want to generate a report if the number of day usage is less than one !
         elif my_opts.out == 'gnuplot' and nb_days > 0:
-            output_gnuplot(my_opts.image, nb_days, result_list)
+            output_gnuplot(my_opts.report, nb_days, result_list)
 
 if __name__ == "__main__":
     main()
