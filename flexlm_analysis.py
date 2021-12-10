@@ -59,9 +59,8 @@ class Options:
         argparse module. This function is called in the __init__ function
         of this class.
         """
-        str_version = 'flexlm_analysis'
 
-        parser = argparse.ArgumentParser(description='Script to analyse flexlm log files.', version=str_version)
+        parser = argparse.ArgumentParser(description='Script to analyse flexlm log files.')
 
         parser.add_argument('-r', '--report', action='store', dest='report', help='Tells the report name the gnuplot script may generate', default='Licenses')
         parser.add_argument('-g', '--gnuplot', action='store_true', dest='gnuplot', help='Outputs a gnuplot script that can be executed later to generate an report about the usage', default=False)
