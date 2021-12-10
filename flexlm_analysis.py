@@ -30,11 +30,13 @@
 #    - Generate a PDF report in A4 size as output.
 #    - Generate one plot per license feature in addition to one plot including
 #      all features.
+#    - Report and intermediate data saved in extra directories.
 #
 
 import argparse
 import re
 import gzip
+import os
 
 
 class Options:
@@ -350,12 +352,12 @@ def do_gnuplot_stats(result_list):
 # End of do_some_stats function
 
 
-def print_gnuplot(report_name, nb_days, stats, module_list):
+def print_gnuplot(report_name, nb_days, stats, module_list, data_dir):
     """Writing the data files and the gnuplot script.
     """
 
     # Generating the gnuplot script
-    gnuplot_file = open('gnuplot.script', 'w')
+    gnuplot_file = open(os.path.join(data_dir, 'gnuplot.script'), 'w')
 
     gnuplot_file.write('# Gnuplot settings.\n')
     gnuplot_file.write('set key right\n')
@@ -378,7 +380,7 @@ def print_gnuplot(report_name, nb_days, stats, module_list):
     gnuplot_file.write('plot ')
     for m in module_list:
         dat_filename = '%s.dat' % m
-        dat_file = open(dat_filename, 'w')
+        dat_file = open(os.path.join(data_dir, dat_filename), 'w')
 
         if first_line:
             gnuplot_file.write('"%s" using 1:3 title "%s" with lines' % (dat_filename, m))
@@ -404,13 +406,13 @@ def print_gnuplot(report_name, nb_days, stats, module_list):
 # End of print_gnuplot() function
 
 
-def output_gnuplot(report_name, nb_days, result_list):
+def output_gnuplot(report_name, nb_days, result_list, data_dir):
     """Does some stats and outputs them into some data files and a gnuplot script
     that one might run later.
     """
 
     (stats, module_list) = do_gnuplot_stats(result_list)
-    print_gnuplot(report_name, nb_days, stats, module_list)
+    print_gnuplot(report_name, nb_days, stats, module_list, data_dir)
 
 # End of output_gnuplot() function
 
@@ -431,7 +433,19 @@ def main():
 
         # We do not want to generate a report if the number of day usage is less than one !
         elif my_opts.out == 'gnuplot' and nb_days > 0:
-            output_gnuplot(my_opts.report, nb_days, result_list)
+            report = my_opts.report
+            # Report directory.
+            report_dir = report + '_report'
+            os.makedirs(report_dir, exist_ok=True)
+            # Data directory.
+            data_dir = os.path.join(report_dir, 'data')
+            os.makedirs(data_dir, exist_ok=True)
+            # Generate files for gnuplot.
+            output_gnuplot(report, nb_days, result_list, data_dir)
+            # Run gnuplot to generate the report.
+            os.system("cd %s; gnuplot %s" % (data_dir, 'gnuplot.script'))
+            # Move the report to the report directory.
+            os.system("mv %s.pdf %s" % (os.path.join(data_dir, report), report_dir))
 
 if __name__ == "__main__":
     main()
