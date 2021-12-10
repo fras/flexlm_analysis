@@ -20,6 +20,17 @@
 #  along with this program; if not, write to the Free Software Foundation,
 #  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 #
+#
+#
+#  Updated by M. Fras, Electronics Division, MPI for Physics, Munich
+#
+#  Changelog:
+#  * 10 Dec 2021:
+#    - Support for Python 3.
+#    - Generate a PDF report in A4 size as output.
+#    - Generate one plot per license feature in addition to one plot including
+#      all features.
+#
 
 import argparse
 import re
