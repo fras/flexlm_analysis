@@ -3,3 +3,6 @@ gnuplot.*
 *.png
 *.log
 *.dat
+# Vim swap and backup files.
+.*.swp
+*~
