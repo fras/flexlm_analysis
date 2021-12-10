@@ -384,10 +384,10 @@ def print_gnuplot(report_name, nb_days, stats, module_list, data_dir):
         dat_file = open(os.path.join(data_dir, dat_filename), 'w')
 
         if first_line:
-            gnuplot_file.write('"%s" using 1:3 title "%s" with lines' % (dat_filename, m))
+            gnuplot_file.write('"%s" using 1:3 title "%s" noenhanced with lines' % (dat_filename, m))
             first_line = False
         else:
-            gnuplot_file.write(', \\\n"%s" using 1:3 title "%s" with lines' % (dat_filename, m))
+            gnuplot_file.write(', \\\n"%s" using 1:3 title "%s" noenhanced with lines' % (dat_filename, m))
 
         event_list = stats[m]
         event_list.reverse()  # We have to reverse the list as we prepended elements
@@ -402,7 +402,7 @@ def print_gnuplot(report_name, nb_days, stats, module_list, data_dir):
     gnuplot_file.write('\n# One page per license feature.')
     for m in module_list:
         dat_filename = '%s.dat' % m
-        gnuplot_file.write('\nplot "%s" using 1:3 title "%s" with lines' % (dat_filename, m))
+        gnuplot_file.write('\nplot "%s" using 1:3 title "%s" noenhanced with lines' % (dat_filename, m))
 
 # End of print_gnuplot() function
 
