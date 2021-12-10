@@ -31,6 +31,7 @@
 #    - Generate one plot per license feature in addition to one plot including
 #      all features.
 #    - Report and intermediate data saved in extra directories.
+#    - Help text updated.
 #
 
 import argparse
@@ -75,9 +76,9 @@ class Options:
 
         parser = argparse.ArgumentParser(description='Script to analyse flexlm log files.')
 
-        parser.add_argument('-r', '--report', action='store', dest='report', help='Tells the report name the gnuplot script may generate', default='Licenses')
-        parser.add_argument('-g', '--gnuplot', action='store_true', dest='gnuplot', help='Outputs a gnuplot script that can be executed later to generate an report about the usage', default=False)
-        parser.add_argument('-s', '--stats', action='store_true', dest='stats', help='Outputs some stats about the use of the modules as stated in the log file', default=False)
+        parser.add_argument('-r', '--report', action='store', dest='report', help='Tells the report name the gnuplot script will generate.', default='Licenses')
+        parser.add_argument('-g', '--gnuplot', action='store_true', dest='gnuplot', help='Generates a gnuplot script and data files. Then runs gnuplot to generate a PDF report about the usage of the license features. Note: Gnuplot must be installed on the computer!', default=False)
+        parser.add_argument('-s', '--stats', action='store_true', dest='stats', help='Outputs some stats about the usage of the license features as stated in the log file.', default=False)
         parser.add_argument('files', metavar='Files', type=str, nargs='+', help='Log files to be parsed')
 
         self.options = parser.parse_args()
@@ -368,7 +369,7 @@ def print_gnuplot(report_name, nb_days, stats, module_list, data_dir):
     gnuplot_file.write('set format x "%Y/%m/%d %H:%M:%S"\n')
     gnuplot_file.write('set xlabel "Date, Time"\n')
     gnuplot_file.write('set xtics rotate\n')
-    gnuplot_file.write('set ylabel "Number of licenses"\n')
+    gnuplot_file.write('set ylabel "Number of licenses in use"\n')
     gnuplot_file.write('set output "%s.pdf"\n' % report_name)
     gnuplot_file.write('set style line 1 lw 1\n')
     gnuplot_file.write('set terminal pdf size 29.7 cm, 21.0 cm  # PDF output in A4 format\n')

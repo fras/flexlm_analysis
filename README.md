@@ -21,18 +21,22 @@ DESCRIPTION
   Script to analyse flexlm log files.
 
 OPTIONS
-
   -h, --help
-    This help
+    Show this help message and exit.
 
-  -s, --stat
-    Outputs some stats about the use of the modules as stated
-    in the log files
+  -r REPORT, --report REPORT
+    Tells the report name the gnuplot script will generate.
 
   -g, --gnuplot
-    Outputs a gnuplot script that can be executed later to
-    generate an image about the usage
+    Generates a gnuplot script and data files. Then runs gnuplot to generate a
+    PDF report about the usage of the license features.
+    Note: Gnuplot must be installed on the computer!
+
+  -s, --stats
+    Outputs some stats about the usage of the license features as stated in the
+    log file.
 
 EXAMPLES
-  flexlm_analysis.py origin.log
+  flexlm_analysis.py -s origin.log
+  flexlm_analysis.py -g -r Origin origin.log
 ```
