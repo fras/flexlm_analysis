@@ -293,6 +293,7 @@ def init_use_upon_state(state):
     real life so a IN state fixes use at 0.
     """
 
+    use = 0
     if state.lower() == 'out':
         use = 1
     elif state.lower == 'in':
