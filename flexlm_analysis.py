@@ -394,7 +394,7 @@ def print_gnuplot(report_name, nb_days, stats, module_list, data_dir):
     gnuplot_file.write('# Gnuplot settings.\n')
     gnuplot_file.write('set key right\n')
     gnuplot_file.write('set grid\n')
-    gnuplot_file.write('set title "FlexLm - %s"\n' % report_name)
+    gnuplot_file.write('set title "FlexLm - %s" noenhanced\n' % report_name)
     gnuplot_file.write('set xdata time\n')
     gnuplot_file.write('set timefmt "%Y/%m/%d %H:%M:%S"\n')
     gnuplot_file.write('set format x "%Y/%m/%d %H:%M:%S"\n')
