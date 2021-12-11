@@ -32,6 +32,8 @@
 #      all features.
 #    - Report and intermediate data saved in extra directories.
 #    - Help text updated.
+#  * 11 Dec 2021:
+#    - Deduplicate licenses checked out by the same user on the same machine.
 #
 
 import argparse
@@ -267,6 +269,8 @@ def print_stats(nb_days, stats, name_list):
         if (nb_use_days > 0):
             print('  avg : %d' % (total_use/nb_use_days))
 
+        if max_users == 0:
+            min_users = 0
         print('  min : %d' % min_users)
 
         print(' Total number of use : %d' % total_use)
@@ -314,9 +318,32 @@ def update_use_value_upon_state(state, use):
     elif state.lower() == 'in':
         use = use - 1
 
+    # Avoid negative values.
+    if use < 0:
+        use = 0
+
     return use
 
 # End of update_use_value_upon_state() function
+
+
+def deduplicate(stats_dedup, state, module, user, machine):
+    """Deduplicate licenses checked out by the same user on the same
+    machine."""
+
+    module_user_machine = module + ":" + user + "@" + machine
+    if state.lower() == "out":
+        if module_user_machine in stats_dedup:
+            return True
+        else:
+            stats_dedup.add(module_user_machine)
+    elif state.lower() == "in":
+        if module_user_machine in stats_dedup:
+            stats_dedup.remove(module_user_machine)
+
+    return False
+
+# End of deduplicate() function
 
 
 def do_gnuplot_stats(result_list):
@@ -329,9 +356,13 @@ def do_gnuplot_stats(result_list):
 
     module_list = []
     stats = dict()
+    stats_dedup = set()
 
     for data in result_list:
         (date, time, state, module, user, machine) = data
+
+        if deduplicate(stats_dedup, state, module, user, machine):
+            continue
 
         if module not in module_list:
             module_list.append(module)
@@ -341,7 +372,6 @@ def do_gnuplot_stats(result_list):
 
         if event_list == []:
             use = init_use_upon_state(state)
-
         else:
             (some_date, some_time, use) = event_list[0]  # retrieving the last 'use' value to update it
             use = update_use_value_upon_state(state, use)
@@ -351,7 +381,7 @@ def do_gnuplot_stats(result_list):
 
     return (stats, module_list)
 
-# End of do_some_stats function
+# End of do_gnuplot_stats function
 
 
 def print_gnuplot(report_name, nb_days, stats, module_list, data_dir):
