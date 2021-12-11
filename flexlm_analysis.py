@@ -34,6 +34,7 @@
 #    - Help text updated.
 #  * 11 Dec 2021:
 #    - Deduplicate licenses checked out by the same user on the same machine.
+#    - Fixes in min / max statistics.
 #
 
 import argparse
@@ -172,7 +173,7 @@ def get_stats_from_module(stats, module_list, module):
 
     if module not in module_list:
         module_list.append(module)
-        stats[module] = (0, 999999999999, '', -1, 0, 0)
+        stats[module] = (0, 999999999999, '', 0, 0, 0, 'XXXXXXX')
 
     return stats[module]
 
@@ -192,6 +193,10 @@ def count_users_upon_state(state, nb_users, total_use):
     elif state.lower() == 'in':
         nb_users = nb_users - 1
 
+    # Avoid negative values.
+    if nb_users < 0:
+        nb_users = 0
+
     return (nb_users, total_use)
 
 # End of count_users_upon_state() function
@@ -207,7 +212,7 @@ def get_min_max_users(nb_users, min_users, max_users, date, max_day):
         max_users = nb_users
         max_day = date
 
-    elif nb_users > 0 and nb_users < min_users:
+    if nb_users > 0 and nb_users < min_users:
         min_users = nb_users
 
     return (min_users, max_users, max_day)
@@ -228,15 +233,19 @@ def do_some_stats(result_list):
 
     module_list = []
     stats = dict()  # Tuple dictionnary : (max_users, min_users, max_day, nb_users, total_use, nb_days)
+    stats_dedup = set()
 
     for data in result_list:
         (date, time, state, module, user, machine) = data
 
+        if deduplicate(stats_dedup, state, module, user, machine):
+            continue
+
         # Retrieving usage values for a specific module
-        (max_users, min_users, max_day, nb_users, total_use, nb_days) = get_stats_from_module(stats, module_list, module)
+        (max_users, min_users, max_day, nb_users, total_use, nb_days, old_date) = get_stats_from_module(stats, module_list, module)
 
         # Calculating statistics
-        if date != old_date:
+        if date != old_date and state.lower() == 'out':
 
             if nb_users < 0:
                 nb_users = 1
@@ -248,7 +257,7 @@ def do_some_stats(result_list):
         (min_users, max_users, max_day) = get_min_max_users(nb_users, min_users, max_users, date, max_day)
 
         # Saving the new values into the corresponding module
-        stats[module] = (max_users, min_users, max_day, nb_users, total_use, nb_days)
+        stats[module] = (max_users, min_users, max_day, nb_users, total_use, nb_days, old_date)
 
     return (stats, module_list)
 
@@ -260,14 +269,11 @@ def print_stats(nb_days, stats, name_list):
     """
 
     for name in name_list:
-        (max_users, min_users, max_day, nb_users, total_use, nb_use_days) = stats[name]
+        (max_users, min_users, max_day, nb_users, total_use, nb_use_days, date) = stats[name]
 
         print('Module %s :' % name)
         print(' Number of users per day :')
         print('  max : %d (%s)' % (max_users, max_day))
-
-        if (nb_use_days > 0):
-            print('  avg : %d' % (total_use/nb_use_days))
 
         if max_users == 0:
             min_users = 0
@@ -275,6 +281,9 @@ def print_stats(nb_days, stats, name_list):
 
         print(' Total number of use : %d' % total_use)
         print(' Number of days used : %d / %d' % (nb_use_days, nb_days))
+        if (nb_use_days > 0):
+            print(' Average use per day : %d' % (total_use/nb_use_days))
+
         print('')  # Fancier things
 
 # End of print_stats function
