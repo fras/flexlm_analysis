@@ -36,6 +36,8 @@
 #    - Deduplicate licenses checked out by the same user on the same machine.
 #    - Fixes in min / max statistics.
 #    - Improved PDF plot output: Dots, uniform x-axis, y-tics increment 1.
+#    - Only checked-out licenses can be checked in. This avoids negative
+#      license counts.
 #
 
 import argparse
@@ -194,10 +196,6 @@ def count_users_upon_state(state, nb_users, total_use):
     elif state.lower() == 'in':
         nb_users = nb_users - 1
 
-    # Avoid negative values.
-    if nb_users < 0:
-        nb_users = 0
-
     return (nb_users, total_use)
 
 # End of count_users_upon_state() function
@@ -213,7 +211,7 @@ def get_min_max_users(nb_users, min_users, max_users, date, max_day):
         max_users = nb_users
         max_day = date
 
-    if nb_users > 0 and nb_users < min_users:
+    if nb_users >= 0 and nb_users < min_users:
         min_users = nb_users
 
     return (min_users, max_users, max_day)
@@ -247,10 +245,6 @@ def do_some_stats(result_list):
 
         # Calculating statistics
         if date != old_date and state.lower() == 'out':
-
-            if nb_users < 0:
-                nb_users = 1
-
             nb_days = nb_days + 1
             old_date = date
 
@@ -328,10 +322,6 @@ def update_use_value_upon_state(state, use):
     elif state.lower() == 'in':
         use = use - 1
 
-    # Avoid negative values.
-    if use < 0:
-        use = 0
-
     return use
 
 # End of update_use_value_upon_state() function
@@ -350,6 +340,8 @@ def deduplicate(stats_dedup, state, module, user, machine):
     elif state.lower() == "in":
         if module_user_machine in stats_dedup:
             stats_dedup.remove(module_user_machine)
+        else:
+            return True
 
     return False
 
