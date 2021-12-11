@@ -35,6 +35,7 @@
 #  * 11 Dec 2021:
 #    - Deduplicate licenses checked out by the same user on the same machine.
 #    - Fixes in min / max statistics.
+#    - Improved PDF plot output: Dots, uniform x-axis, y-tics increment 1.
 #
 
 import argparse
@@ -410,8 +411,9 @@ def print_gnuplot(report_name, nb_days, stats, module_list, data_dir):
     gnuplot_file.write('set xlabel "Date, Time"\n')
     gnuplot_file.write('set xtics rotate\n')
     gnuplot_file.write('set ylabel "Number of licenses in use"\n')
+    gnuplot_file.write('set ytics 1\n')
     gnuplot_file.write('set output "%s.pdf"\n' % report_name)
-    gnuplot_file.write('set style line 1 lw 1\n')
+    gnuplot_file.write('set style line 1 lt 1 lw 2 pt 7 ps 0.5\n')
     gnuplot_file.write('set terminal pdf size 29.7 cm, 21.0 cm  # PDF output in A4 format\n')
 
     first_line = True
@@ -440,9 +442,10 @@ def print_gnuplot(report_name, nb_days, stats, module_list, data_dir):
 
     # Generate one page per license feature in the output PDF.
     gnuplot_file.write('\n# One page per license feature.')
+    gnuplot_file.write('\nset xrange [GPVAL_X_MIN:GPVAL_X_MAX]')
     for m in module_list:
         dat_filename = '%s.dat' % m
-        gnuplot_file.write('\nplot "%s" using 1:3 title "%s" noenhanced with lines' % (dat_filename, m))
+        gnuplot_file.write('\nplot "%s" using 1:3 title "%s" noenhanced with linespoints linestyle 1' % (dat_filename, m))
 
 # End of print_gnuplot() function
 
